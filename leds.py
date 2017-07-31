@@ -44,7 +44,7 @@ class LedAllOff(tornado.web.RequestHandler):
 
 class LedHandler(tornado.web.RequestHandler):
     def get(self, led_id,red,green,blue):
-       if int(led_id) < strip.numPixels()-1:
+       if int(led_id) < strip.numPixels() or int(led_id) == 0:
          id = int(led_id)
          ledStatus[id]['red'] = int(red)
          ledStatus[id]['blue'] = int(blue)
@@ -56,7 +56,7 @@ class LedHandler(tornado.web.RequestHandler):
 
 class LedBlink(tornado.web.RequestHandler):
    def get(self, led_id, blink):
-       if int(led_id) < strip.numPixels()-1:
+       if int(led_id) < strip.numPixels() or int(led_id) == 0:
          ledStatus[int(led_id)]['blink'] = int(blink)
          self.set_status(200)
        else:
@@ -97,9 +97,9 @@ def updateLed():
 if __name__ == "__main__":
     strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
     strip.begin()
-    for i in range(0, strip.numPixels()-2):
+    for i in range(1, strip.numPixels()):
        ledStatus[i] = { 'red' : 0, 'blue' : 0, 'green' : 0, 'blink' : 0 , 'on' : 0 }
-    ledStatus[strip.numPixels()-1] = { 'red' : 64, 'blue' : 64, 'green' : 0, 'blink' : 1, 'on' : 1 }
+    ledStatus[0] = { 'red' : 64, 'blue' : 64, 'green' : 0, 'blink' : 1, 'on' : 1 }
 
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen("8080")

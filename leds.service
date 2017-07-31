@@ -1,0 +1,11 @@
+[Unit]
+Description=Neopilex Led strip controller
+After=network.target auditd.service
+
+[Service]
+ExecStart=/usr/bin/python /home/ubuntu/led_controller/leds.py
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
+Alias=leds.service
