@@ -8,6 +8,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 from tornado.ioloop import PeriodicCallback
+import json
 
 # LED strip configuration:
 LED_COUNT      = 60      # Number of LED pixels.
@@ -20,7 +21,7 @@ LED_INVERT     = False   # True to invert the signal (when using NPN transistor 
 LED_CHANNEL    = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 LED_STRIP      = ws.WS2811_STRIP_GRB   # Strip type and colour ordering
 
-ledStatus = {}
+ledStatus = []
 
 def ledOff(strip, led):
    strip.setPixelColor(led, Color(0,0,0))
@@ -62,22 +63,41 @@ class LedBlink(tornado.web.RequestHandler):
        else:
          self.set_status(404)
 
+class LedName(tornado.web.RequestHandler):
+   def get(self, led_id, name):
+       if int(led_id) < strip.numPixels() or int(led_id) == 0:
+         ledStatus[int(led_id)]['name'] = name
+         self.set_status(200)
+       else:
+         self.set_status(404)
+
+class JsonDump(tornado.web.RequestHandler):
+   def get(self):
+      jsonblob = {
+        'data': ledStatus,
+        'total': '60',
+      }
+      self.set_header("Access-Control-Allow-Origin", "*")
+      self.write(json.dumps(jsonblob))
+
 class Application(tornado.web.Application):
     def __init__(self):
        handlers = [
-           (r"/", MainHandler),
            (r"/led/([0-9]+)/([0-9]+)/([0-9]+)/([0-9]+)", LedHandler),
            (r"/ledoff", LedAllOff),
-           (r"/ledblink/([0-9]+)/([0-1])", LedBlink)
+           (r"/ledblink/([0-9]+)/([0-1])", LedBlink),
+           (r"/ledname/([0-9]+)/(.*)", LedName),
+           (r"/json", JsonDump),
+           (r"/(.*)", tornado.web.StaticFileHandler, {'path': '/home/ubuntu/led_controller/static', 'default_filename' : 'index.html'})
        ]
        settings = dict(
-           
+
        )
        super(Application, self).__init__(handlers, **settings)
 
 def updateLed():
-    for led_id in ledStatus:
-        led = ledStatus[led_id]
+    for led in ledStatus:
+        led_id = led['id']
         if led['blink'] == 0:
             if led['on'] == 0:
                 strip.setPixelColor(led_id, Color(0,0,0))
@@ -97,9 +117,9 @@ def updateLed():
 if __name__ == "__main__":
     strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL, LED_STRIP)
     strip.begin()
+    ledStatus.append({ 'red' : 64, 'blue' : 64, 'green' : 0, 'blink' : 1, 'on' : 1, 'name' : 'Heartbeat', 'id' : 0})
     for i in range(1, strip.numPixels()):
-       ledStatus[i] = { 'red' : 0, 'blue' : 0, 'green' : 0, 'blink' : 0 , 'on' : 0 }
-    ledStatus[0] = { 'red' : 64, 'blue' : 64, 'green' : 0, 'blink' : 1, 'on' : 1 }
+       ledStatus.append({ 'red' : 0, 'blue' : 0, 'green' : 0, 'blink' : 0 , 'on' : 0, 'name' : '', 'id': i })
 
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen("8080")
