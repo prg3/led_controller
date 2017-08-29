@@ -6,7 +6,10 @@ This is a simple controller for the neopixel LED strips that works with an Raspb
 
 ### Prerequisites
 
-Install rpi_ws281x from https://github.com/jgarff/rpi_ws281x
+
+Install rpi_ws281x from https://github.com/jgarff/rpi_ws281x including the python neopixel module (Instructions in python/README.md)
+
+
 Install python-tornado from apt:
 ```
 apt-get install python-tornado
