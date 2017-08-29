@@ -8,6 +8,7 @@ This is a simple controller for the neopixel LED strips that works with an Raspb
 
 
 Install rpi_ws281x from https://github.com/jgarff/rpi_ws281x including the python neopixel module (Instructions in python/README.md)
+ - use swig2.0 package for Ubuntu 16.04 as per https://github.com/jgarff/rpi_ws281x/issues/115
 
 
 Install python-tornado from apt:
